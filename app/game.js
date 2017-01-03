@@ -1,7 +1,7 @@
 const KEY_PRESS_COUNT = 7,
       TICKS_PER_GHOST_MOVE = 30;
 
-var createGhost = function(position) {
+let createGhost = function(position) {
     return {
         position,
         pathToPlayer(map, playerPos) {
@@ -10,16 +10,17 @@ var createGhost = function(position) {
     };
 };
 
-var createGameState = function(map) {
-    var playerStart = map.getPlayerStart();
+let createGameState = function(map) {
+    let playerStart = map.getPlayerStart();
     console.log("playerStart:", playerStart);
 
-    var ghosts = map.getGhostStarts().map(x => createGhost(x));
+    let ghosts = map.getGhostStarts().map(x => createGhost(x));
 
     return {
         map,
         ghosts,
         ticks: 0,
+        gameOver: false,
         playerPosition: playerStart,
         keyCounters: {
             up: -1,
@@ -33,7 +34,7 @@ var createGameState = function(map) {
             this.keyCounters.left = keyMap.left ? this.keyCounters.left + 1 : -1;
             this.keyCounters.right = keyMap.right ? this.keyCounters.right + 1 : -1;
 
-            var x = this.playerPosition.x,
+            let x = this.playerPosition.x,
                 y = this.playerPosition.y;
             if (this.keyCounters.up % KEY_PRESS_COUNT == 0) {
                 y--;
@@ -61,8 +62,8 @@ var createGameState = function(map) {
             this.playerPosition = { x, y };
         },
         isGhost(pos) {
-            for (var i = 0; i < this.ghosts.length; i++) {
-                var ghost = this.ghosts[i];
+            for (let i = 0; i < this.ghosts.length; i++) {
+                let ghost = this.ghosts[i];
                 if (ghost.position.x == pos.x && ghost.position.y == pos.y) {
                     return true;
                 }
@@ -72,17 +73,18 @@ var createGameState = function(map) {
             if (this.ticks > 5*TICKS_PER_GHOST_MOVE &&
                 this.ticks % TICKS_PER_GHOST_MOVE == 0) {
 
-                console.log("ghost paths");
                 this.ghosts.forEach(ghost => {
-                    var bestPath = ghost.pathToPlayer(this.map, this.playerPosition);
+                    let bestPath = ghost.pathToPlayer(this.map, this.playerPosition);
                     if (bestPath.length == 0) {
                         return;
                     } else if (bestPath.length == 1) {
                         console.log("Eaten!");
+                        this.gameOver = true;
+                        return;
                     }
 
                     bestPath.pop();
-                    var nextStep = bestPath.pop();
+                    let nextStep = bestPath.pop();
                     if (!this.isGhost(nextStep)) {
                         ghost.position = nextStep;
                     }

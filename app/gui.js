@@ -1,9 +1,9 @@
 module.exports = function(container) {
 
-    var canvas = document.createElement("CANVAS");
+    let canvas = document.createElement("CANVAS");
     container.append(canvas);
 
-    var result = {
+    let result = {
         canvas,
         scaleFactor: 20,
         keyMap: {
@@ -13,17 +13,17 @@ module.exports = function(container) {
             down: false
         },
         drawMap(map) {
-            var s = this.scaleFactor,
+            let s = this.scaleFactor,
                 width = s * map.width,
                 height = s * map.height;
 
             this.canvas.width = width;
             this.canvas.height = height;
 
-            var ctx = this.canvas.getContext("2d");
+            let ctx = this.canvas.getContext("2d");
             ctx.clearRect(0, 0, width, height);
-            for (var y = 0; y < map.height; y++) {
-                for (var x = 0; x < map.width; x++) {
+            for (let y = 0; y < map.height; y++) {
+                for (let x = 0; x < map.width; x++) {
                     if (map.isGhostEscape(x,y)) {
                         ctx.fillStyle = "rgb(0,0,255)";
                         ctx.fillRect(s*x, s*y, s, s);
@@ -35,10 +35,10 @@ module.exports = function(container) {
             }
         },
         drawState(state) {
-            var s = this.scaleFactor,
+            let s = this.scaleFactor,
                 player = state.playerPosition;
 
-            var ctx = this.canvas.getContext("2d");
+            let ctx = this.canvas.getContext("2d");
             ctx.fillStyle = "rgb(0,255,0)";
 
             ctx.beginPath();
@@ -47,7 +47,7 @@ module.exports = function(container) {
 
             ctx.fillStyle = "rgb(255,0,0)";
             state.ghosts.forEach(ghost => {
-                var pos = ghost.position;
+                let pos = ghost.position;
                 ctx.beginPath();
                 ctx.arc(s*(pos.x+1/2), s*(pos.y+1/2), s/2, 0, 2*Math.PI, false);
                 ctx.fill();

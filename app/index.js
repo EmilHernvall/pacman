@@ -1,20 +1,23 @@
-var newMapFromImage = require("./map").newMapFromImage,
+let newMapFromImage = require("./map").newMapFromImage,
     createGameState = require("./game").createGameState,
     createGui = require("./gui");
 
-var runGame = function(gameMap) {
-    var gameState = createGameState(gameMap);
-    var gui = createGui(document.querySelector("#game"));
+let runGame = function(gameMap) {
+    let gameState = createGameState(gameMap);
+    let gui = createGui(document.querySelector("#game"));
 
-    var tick = function() {
+    let tick = function() {
         gameState.processInput(gui.keyMap);
         gameState.moveGhosts();
 
         gui.drawMap(gameMap);
         gui.drawState(gameState);
 
-        gameState.ticks++;
+        if (gameState.gameOver) {
+            return;
+        }
 
+        gameState.ticks++;
         requestAnimationFrame(tick);
     };
 
@@ -23,13 +26,13 @@ var runGame = function(gameMap) {
 
 window.addEventListener("load", (e) => {
     console.log("Loading map");
-    var imageOfMap = new Image();
+    let imageOfMap = new Image();
     imageOfMap.addEventListener("load", (e) => {
         console.log("Map loaded:",
                     "width =", imageOfMap.width,
                     "height =", imageOfMap.height);
 
-        var map = newMapFromImage(imageOfMap);
+        let map = newMapFromImage(imageOfMap);
         runGame(map);
     });
     imageOfMap.src = "/map.png";

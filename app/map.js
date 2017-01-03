@@ -10,41 +10,41 @@ const SLOTTYPE_EMPTY = 0,
       SLOTTYPE_GHOSTSTART = 3,
       SLOTTYPE_GHOSTESCAPE = 4;
 
-var packCoords = function(x,y) {
+let packCoords = function(x,y) {
     return ((x & COORDINATE_BIT_MASK) << BITS_PER_COORDINATE) |
            (y & COORDINATE_BIT_MASK);
 };
 
-var unpackCoords = function(c) {
-    var x = (c >> BITS_PER_COORDINATE) & COORDINATE_BIT_MASK,
+let unpackCoords = function(c) {
+    let x = (c >> BITS_PER_COORDINATE) & COORDINATE_BIT_MASK,
         y = c & COORDINATE_BIT_MASK;
 
     return { x, y };
 };
 
-var createNodeSet = function() {
+let createNodeSet = function() {
     return {
         nodes: {},
         length: 0,
         add(node) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             this.length++;
             this.nodes[c] = true;
         },
         contains(node) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             return this.nodes[c] === true;
         },
         remove(node) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             delete this.nodes[c];
             this.length--;
         },
         findShortest(scores) {
-            var bestNode = null,
+            let bestNode = null,
                 minScore = Number.POSITIVE_INFINITY;
-            for (var idx in this.nodes) {
-                var node = this.nodes[idx],
+            for (let idx in this.nodes) {
+                let node = this.nodes[idx],
                     score = scores.get(unpackCoords(idx));
 
                 if (score < minScore) {
@@ -58,15 +58,15 @@ var createNodeSet = function() {
     };
 };
 
-var createCostMap = function() {
+let createCostMap = function() {
     return {
         nodes: {},
         set(node, cost) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             this.nodes[c] = cost;
         },
         get(node) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             if (typeof this.nodes[c] === "undefined") {
                 return Number.POSITIVE_INFINITY;
             }
@@ -76,39 +76,39 @@ var createCostMap = function() {
     };
 };
 
-var createNodeToNodeMap = function() {
+let createNodeToNodeMap = function() {
     return {
         nodes: {},
         set(node, target) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             this.nodes[c] = target;
         },
         get(node) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             return this.nodes[c];
         },
         contains(node) {
-            var c = packCoords(node.x, node.y);
+            let c = packCoords(node.x, node.y);
             return typeof this.nodes[c] !== "undefined";
         }
     };
 };
 
-var newMapFromImage = function(imageOfMap) {
-    var width = imageOfMap.width,
+let newMapFromImage = function(imageOfMap) {
+    let width = imageOfMap.width,
         height = imageOfMap.height;
 
-    var localCanvas = document.createElement("CANVAS");
+    let localCanvas = document.createElement("CANVAS");
     localCanvas.width = width;
     localCanvas.height = height;
 
-    var ctx = localCanvas.getContext("2d");
+    let ctx = localCanvas.getContext("2d");
     ctx.drawImage(imageOfMap, 0, 0, width, height);
 
-    var data = ctx.getImageData(0, 0, width, height).data;
-    var mapData = new Uint8Array(BUFFER_SLOTS);
-    for (var idx = 0; idx < data.length; idx += 4) {
-        var properIdx = idx / 4,
+    let data = ctx.getImageData(0, 0, width, height).data;
+    let mapData = new Uint8Array(BUFFER_SLOTS);
+    for (let idx = 0; idx < data.length; idx += 4) {
+        let properIdx = idx / 4,
             x = properIdx % width,
             y = (properIdx / width) | 0,
             newIdx = packCoords(x,y),
@@ -133,13 +133,13 @@ var newMapFromImage = function(imageOfMap) {
     return createMap(width, height, mapData);
 };
 
-var createMap = function(width, height, buffer) {
+let createMap = function(width, height, buffer) {
     return {
         width,
         height,
         buffer,
         getAdjacentPaths(x, y) {
-            var paths = [];
+            let paths = [];
 
             paths.push({ x: x, y: y-1 }); // Above
             paths.push({ x: x-1, y: y }); // Left
@@ -150,16 +150,16 @@ var createMap = function(width, height, buffer) {
                                      this.isGhostEscape(p.x, p.y));
         },
         isWall(x,y) {
-            var c = this.buffer[packCoords(x,y)];
+            let c = this.buffer[packCoords(x,y)];
             return c === SLOTTYPE_WALL || c == SLOTTYPE_GHOSTESCAPE;
         },
         isGhostEscape(x,y) {
-            var c = this.buffer[packCoords(x,y)];
+            let c = this.buffer[packCoords(x,y)];
             return c == SLOTTYPE_GHOSTESCAPE;
         },
         getPlayerStart() {
-            for (var i = 0; i < buffer.length; i++) {
-                var c = buffer[i];
+            for (let i = 0; i < buffer.length; i++) {
+                let c = buffer[i];
                 if (c == SLOTTYPE_PLAYERSTART) {
                     return unpackCoords(i);
                 }
@@ -168,9 +168,9 @@ var createMap = function(width, height, buffer) {
             return;
         },
         getGhostStarts() {
-            var ghostStarts = [];
-            for (var i = 0; i < buffer.length; i++) {
-                var c = buffer[i];
+            let ghostStarts = [];
+            for (let i = 0; i < buffer.length; i++) {
+                let c = buffer[i];
                 if (c == SLOTTYPE_GHOSTSTART) {
                     ghostStarts.push(unpackCoords(i));
                 }
@@ -179,8 +179,8 @@ var createMap = function(width, height, buffer) {
             return ghostStarts;
         },
         findClosestPath(start, goal) {
-            var reconstructPath = function(cameFrom, current) {
-                var totalPath = [current];
+            let reconstructPath = function(cameFrom, current) {
+                let totalPath = [current];
                 while (cameFrom.contains(current)) {
                     current = cameFrom.get(current);
                     totalPath.push(current);
@@ -189,25 +189,25 @@ var createMap = function(width, height, buffer) {
                 return totalPath;
             };
 
-            var costEstimate = function(start, goal) {
+            let costEstimate = function(start, goal) {
                 return Math.abs(goal.x - start.x) + Math.abs(goal.y - start.y);
             };
 
-            var closedSet = createNodeSet();
+            let closedSet = createNodeSet();
 
-            var openSet = createNodeSet();
+            let openSet = createNodeSet();
             openSet.add(start);
 
-            var cameFrom = createNodeToNodeMap();
+            let cameFrom = createNodeToNodeMap();
 
-            var gScore = createCostMap();
+            let gScore = createCostMap();
             gScore.set(start, 0);
 
-            var fScore = createCostMap();
+            let fScore = createCostMap();
             fScore.set(start, costEstimate(start, goal));
 
             while (openSet.length > 0) {
-                var current = openSet.findShortest(fScore);
+                let current = openSet.findShortest(fScore);
                 if (current.x == goal.x && current.y == goal.y) {
                     return reconstructPath(cameFrom, current);
                 }
@@ -215,14 +215,14 @@ var createMap = function(width, height, buffer) {
                 openSet.remove(current);
                 closedSet.add(current);
 
-                var neighbors = this.getAdjacentPaths(current.x, current.y);
-                for (var i = 0; i < neighbors.length; i++) {
-                    var neighbor = neighbors[i];
+                let neighbors = this.getAdjacentPaths(current.x, current.y);
+                for (let i = 0; i < neighbors.length; i++) {
+                    let neighbor = neighbors[i];
                     if (closedSet.contains(neighbor)) {
                         continue;
                     }
 
-                    var newScore = gScore.get(current) + 1;
+                    let newScore = gScore.get(current) + 1;
                     if (!openSet.contains(neighbor)) {
                         openSet.add(neighbor);
                     } else if (newScore >= gScore.get(neighbor)) {
