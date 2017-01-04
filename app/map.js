@@ -22,78 +22,6 @@ let unpackCoords = function(c) {
     return { x, y };
 };
 
-let createNodeSet = function() {
-    return {
-        nodes: {},
-        length: 0,
-        add(node) {
-            let c = packCoords(node.x, node.y);
-            this.length++;
-            this.nodes[c] = true;
-        },
-        contains(node) {
-            let c = packCoords(node.x, node.y);
-            return this.nodes[c] === true;
-        },
-        remove(node) {
-            let c = packCoords(node.x, node.y);
-            delete this.nodes[c];
-            this.length--;
-        },
-        findShortest(scores) {
-            let bestNode = null,
-                minScore = Number.POSITIVE_INFINITY;
-            for (let idx in this.nodes) {
-                let node = this.nodes[idx],
-                    score = scores.get(unpackCoords(idx));
-
-                if (score < minScore) {
-                    bestNode = idx;
-                    minScore = score;
-                }
-            }
-
-            return unpackCoords(bestNode);
-        }
-    };
-};
-
-let createCostMap = function() {
-    return {
-        nodes: {},
-        set(node, cost) {
-            let c = packCoords(node.x, node.y);
-            this.nodes[c] = cost;
-        },
-        get(node) {
-            let c = packCoords(node.x, node.y);
-            if (typeof this.nodes[c] === "undefined") {
-                return Number.POSITIVE_INFINITY;
-            }
-
-            return this.nodes[c];
-        }
-    };
-};
-
-let createNodeToNodeMap = function() {
-    return {
-        nodes: {},
-        set(node, target) {
-            let c = packCoords(node.x, node.y);
-            this.nodes[c] = target;
-        },
-        get(node) {
-            let c = packCoords(node.x, node.y);
-            return this.nodes[c];
-        },
-        contains(node) {
-            let c = packCoords(node.x, node.y);
-            return typeof this.nodes[c] !== "undefined";
-        }
-    };
-};
-
 let newMapFromImage = function(imageOfMap) {
     let width = imageOfMap.width,
         height = imageOfMap.height;
@@ -149,54 +77,15 @@ let createMap = function(width, height, buffer) {
             return paths.filter(p => !this.isWall(p.x, p.y) ||
                                      this.isGhostEscape(p.x, p.y));
         },
-        getContiguousAreas() {
-            let scanFromBlock = start => {
-                let candidates = [start],
-                    blocks = [],
-                    visited = createNodeSet();
-                while (candidates.length > 0) {
-                    let cur = candidates.pop(),
-                        x = cur.x,
-                        y = cur.y;
+        getAdjacentWalls(x, y) {
+            let adjacent = {};
 
-                    visited.add(cur);
-                    blocks.push(cur);
+            adjacent.top = this.isWall(x, y-1);
+            adjacent.left = this.isWall(x-1, y);
+            adjacent.right = this.isWall(x+1, y);
+            adjacent.bottom = this.isWall(x, y+1);
 
-                    candidates.push({ x: x, y: y-1 }); // Above
-                    candidates.push({ x: x-1, y: y }); // Left
-                    candidates.push({ x: x+1, y: y }); // Right
-                    candidates.push({ x: x, y: y+1 }); // Below
-
-                    candidates = candidates.filter(p => this.isWall(p.x, p.y) &&
-                                                        !visited.contains(p));
-                }
-
-                return blocks;
-            };
-
-            let areas = [],
-                usedBlocks = createNodeSet();
-            for (let y = 0; y < this.width; y++) {
-                for (let x = 0; x < this.height; x++) {
-                    if (!this.isWall(x,y)) {
-                        continue;
-                    }
-
-                    let p = {x,y};
-
-                    if (usedBlocks.contains(p)) {
-                        continue;
-                    }
-
-                    var area = scanFromBlock(p);
-                    area.forEach(block => {
-                        usedBlocks.add(block);
-                    });
-                    areas.push(area);
-                }
-            }
-
-            return areas;
+            return adjacent;
         },
         isWall(x,y) {
             let c = this.buffer[packCoords(x,y)];
@@ -226,65 +115,6 @@ let createMap = function(width, height, buffer) {
             }
 
             return ghostStarts;
-        },
-        findClosestPath(start, goal) {
-            let reconstructPath = function(cameFrom, current) {
-                let totalPath = [current];
-                while (cameFrom.contains(current)) {
-                    current = cameFrom.get(current);
-                    totalPath.push(current);
-                }
-
-                return totalPath;
-            };
-
-            let costEstimate = function(start, goal) {
-                return Math.abs(goal.x - start.x) + Math.abs(goal.y - start.y);
-            };
-
-            let closedSet = createNodeSet();
-
-            let openSet = createNodeSet();
-            openSet.add(start);
-
-            let cameFrom = createNodeToNodeMap();
-
-            let gScore = createCostMap();
-            gScore.set(start, 0);
-
-            let fScore = createCostMap();
-            fScore.set(start, costEstimate(start, goal));
-
-            while (openSet.length > 0) {
-                let current = openSet.findShortest(fScore);
-                if (current.x == goal.x && current.y == goal.y) {
-                    return reconstructPath(cameFrom, current);
-                }
-
-                openSet.remove(current);
-                closedSet.add(current);
-
-                let neighbors = this.getAdjacentPaths(current.x, current.y);
-                for (let i = 0; i < neighbors.length; i++) {
-                    let neighbor = neighbors[i];
-                    if (closedSet.contains(neighbor)) {
-                        continue;
-                    }
-
-                    let newScore = gScore.get(current) + 1;
-                    if (!openSet.contains(neighbor)) {
-                        openSet.add(neighbor);
-                    } else if (newScore >= gScore.get(neighbor)) {
-                        continue;
-                    }
-
-                    cameFrom.set(neighbor, current);
-                    gScore.set(neighbor, newScore);
-                    fScore.set(neighbor, newScore + costEstimate(neighbor, goal));
-                }
-            }
-
-            return [];
         }
     };
 };

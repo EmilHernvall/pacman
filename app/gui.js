@@ -24,24 +24,32 @@ module.exports = function(container) {
 
             ctx.clearRect(0, 0, width, height);
 
-            //var areas = map.getContiguousAreas();
-            //for (let area of areas) {
-            //    ctx.beginPath();
-            //    ctx.moveTo(s*area[0].x, s*area[0].y);
-            //    for (let p of area) {
-            //        ctx.lineTo(s*p.x, s*p.y);
-            //    }
-            //    ctx.stroke();
-            //}
-
+            let WALL_WIDTH = 2;
             for (let y = 0; y < map.height; y++) {
                 for (let x = 0; x < map.width; x++) {
                     if (map.isGhostEscape(x,y)) {
                         ctx.fillStyle = "rgb(0,0,255)";
                         ctx.fillRect(s*x, s*y, s, s);
                     } else if (map.isWall(x,y)) {
-                        ctx.fillStyle = "rgb(0,0,0)";
+
+                        ctx.fillStyle = "#555555";
                         ctx.fillRect(s*x, s*y, s, s);
+
+                        let adj = map.getAdjacentWalls(x,y);
+                        ctx.fillStyle = "#cccccc";
+
+                        let blockWidth = s-2*WALL_WIDTH,
+                            blockHeight = s-2*WALL_WIDTH;
+                        if (adj.left) { blockWidth += WALL_WIDTH; }
+                        if (adj.right) { blockWidth += WALL_WIDTH; }
+                        if (adj.top) { blockHeight += WALL_WIDTH; }
+                        if (adj.bottom) { blockHeight += WALL_WIDTH; }
+
+                        let blockLeft = s*x+WALL_WIDTH,
+                            blockTop = s*y+WALL_WIDTH;
+                        if (adj.left) { blockLeft -= WALL_WIDTH; }
+                        if (adj.top) { blockTop -= WALL_WIDTH; }
+                        ctx.fillRect(blockLeft, blockTop, blockWidth, blockHeight);
                     }
                 }
             }
@@ -58,8 +66,7 @@ module.exports = function(container) {
             ctx.fill();
 
             ctx.fillStyle = "rgb(255,0,0)";
-            state.ghosts.forEach(ghost => {
-                let pos = ghost.position;
+            state.ghosts.forEach(pos => {
                 ctx.beginPath();
                 ctx.arc(s*(pos.x+1/2), s*(pos.y+1/2), s/2, 0, 2*Math.PI, false);
                 ctx.fill();

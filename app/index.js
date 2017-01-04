@@ -1,5 +1,5 @@
 let newMapFromImage = require("./map").newMapFromImage,
-    createGameState = require("./game").createGameState,
+    createGameState = require("./game"),
     createGui = require("./gui");
 
 let runGame = function(gameMap) {
