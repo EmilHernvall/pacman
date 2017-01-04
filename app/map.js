@@ -149,6 +149,55 @@ let createMap = function(width, height, buffer) {
             return paths.filter(p => !this.isWall(p.x, p.y) ||
                                      this.isGhostEscape(p.x, p.y));
         },
+        getContiguousAreas() {
+            let scanFromBlock = start => {
+                let candidates = [start],
+                    blocks = [],
+                    visited = createNodeSet();
+                while (candidates.length > 0) {
+                    let cur = candidates.pop(),
+                        x = cur.x,
+                        y = cur.y;
+
+                    visited.add(cur);
+                    blocks.push(cur);
+
+                    candidates.push({ x: x, y: y-1 }); // Above
+                    candidates.push({ x: x-1, y: y }); // Left
+                    candidates.push({ x: x+1, y: y }); // Right
+                    candidates.push({ x: x, y: y+1 }); // Below
+
+                    candidates = candidates.filter(p => this.isWall(p.x, p.y) &&
+                                                        !visited.contains(p));
+                }
+
+                return blocks;
+            };
+
+            let areas = [],
+                usedBlocks = createNodeSet();
+            for (let y = 0; y < this.width; y++) {
+                for (let x = 0; x < this.height; x++) {
+                    if (!this.isWall(x,y)) {
+                        continue;
+                    }
+
+                    let p = {x,y};
+
+                    if (usedBlocks.contains(p)) {
+                        continue;
+                    }
+
+                    var area = scanFromBlock(p);
+                    area.forEach(block => {
+                        usedBlocks.add(block);
+                    });
+                    areas.push(area);
+                }
+            }
+
+            return areas;
+        },
         isWall(x,y) {
             let c = this.buffer[packCoords(x,y)];
             return c === SLOTTYPE_WALL || c == SLOTTYPE_GHOSTESCAPE;

@@ -14,6 +14,7 @@ let runGame = function(gameMap) {
         gui.drawState(gameState);
 
         if (gameState.gameOver) {
+            console.log("Game Over!");
             return;
         }
 
@@ -25,7 +26,8 @@ let runGame = function(gameMap) {
 };
 
 window.addEventListener("load", (e) => {
-    console.log("Loading map");
+    console.log("Initializing pacman");
+    console.log("Loading map...");
     let imageOfMap = new Image();
     imageOfMap.addEventListener("load", (e) => {
         console.log("Map loaded:",
@@ -33,6 +35,7 @@ window.addEventListener("load", (e) => {
                     "height =", imageOfMap.height);
 
         let map = newMapFromImage(imageOfMap);
+
         runGame(map);
     });
     imageOfMap.src = "/map.png";

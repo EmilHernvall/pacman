@@ -70,10 +70,14 @@ let createGameState = function(map) {
             }
         },
         moveGhosts() {
-            if (this.ticks > 5*TICKS_PER_GHOST_MOVE &&
-                this.ticks % TICKS_PER_GHOST_MOVE == 0) {
+            if (this.ticks % TICKS_PER_GHOST_MOVE == 0) {
 
+                let i = 0;
                 this.ghosts.forEach(ghost => {
+                    if (this.ticks < TICKS_PER_GHOST_MOVE*(5 + i++)) {
+                        return;
+                    }
+
                     let bestPath = ghost.pathToPlayer(this.map, this.playerPosition);
                     if (bestPath.length == 0) {
                         return;

@@ -1,7 +1,7 @@
 module.exports = function(container) {
 
     let canvas = document.createElement("CANVAS");
-    container.append(canvas);
+    container.appendChild(canvas);
 
     let result = {
         canvas,
@@ -21,7 +21,19 @@ module.exports = function(container) {
             this.canvas.height = height;
 
             let ctx = this.canvas.getContext("2d");
+
             ctx.clearRect(0, 0, width, height);
+
+            //var areas = map.getContiguousAreas();
+            //for (let area of areas) {
+            //    ctx.beginPath();
+            //    ctx.moveTo(s*area[0].x, s*area[0].y);
+            //    for (let p of area) {
+            //        ctx.lineTo(s*p.x, s*p.y);
+            //    }
+            //    ctx.stroke();
+            //}
+
             for (let y = 0; y < map.height; y++) {
                 for (let x = 0; x < map.width; x++) {
                     if (map.isGhostEscape(x,y)) {
