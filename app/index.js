@@ -3,22 +3,21 @@ let newMapFromImage = require("./map").newMapFromImage,
     createGui = require("./gui");
 
 let runGame = function(gameMap) {
-    let gameState = createGameState(gameMap);
+    let gameState = createGameState(gameMap),
+        prevState = null;
     let gui = createGui(document.querySelector("#game"));
 
     let tick = function() {
-        gameState.processInput(gui.keyMap);
-        gameState.moveGhosts();
+        gameState = gameState.tick(gui.keyMap);
 
         gui.drawMap(gameMap);
         gui.drawState(gameState);
 
-        if (gameState.gameOver) {
+        if (gameState.isGameOver()) {
             console.log("Game Over!");
             return;
         }
 
-        gameState.ticks++;
         requestAnimationFrame(tick);
     };
 

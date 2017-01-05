@@ -1,3 +1,5 @@
+const SCALEFACTOR = 40;
+
 module.exports = function(container) {
 
     let canvas = document.createElement("CANVAS");
@@ -5,7 +7,6 @@ module.exports = function(container) {
 
     let result = {
         canvas,
-        scaleFactor: 20,
         keyMap: {
             left: false,
             right: false,
@@ -13,7 +14,7 @@ module.exports = function(container) {
             down: false
         },
         drawMap(map) {
-            let s = this.scaleFactor,
+            let s = SCALEFACTOR,
                 width = s * map.width,
                 height = s * map.height;
 
@@ -55,20 +56,47 @@ module.exports = function(container) {
             }
         },
         drawState(state) {
-            let s = this.scaleFactor,
+            let s = SCALEFACTOR,
                 player = state.playerPosition;
 
             let ctx = this.canvas.getContext("2d");
             ctx.fillStyle = "rgb(0,255,0)";
 
+            let playerX = player.px,
+                playerY = player.py;
+            if (player.ticks + player.den < state.ticks) {
+                playerX = player.x;
+                playerY = player.y;
+            } else {
+                let progress = (state.ticks - player.ticks) / player.den,
+                    dx = progress * (player.x - player.px),
+                    dy = progress * (player.y - player.py);
+                playerX += dx;
+                playerY += dy;
+            }
+
             ctx.beginPath();
-            ctx.arc(s*(player.x+1/2), s*(player.y+1/2), s/2, 0, 2*Math.PI, false);
+            ctx.arc(s*(playerX+1/2), s*(playerY+1/2), s/2.5, 0, 2*Math.PI, false);
             ctx.fill();
 
             ctx.fillStyle = "rgb(255,0,0)";
-            state.ghosts.forEach(pos => {
+            state.ghosts.forEach(ghost => {
+                let x = ghost.px,
+                    y = ghost.py;
+
+                if (ghost.ticks + ghost.den < state.ticks) {
+                    x = ghost.x;
+                    y = ghost.y;
+                } else {
+                    let progress = (state.ticks - ghost.ticks) / ghost.den,
+                        dx = progress * (ghost.x - ghost.px),
+                        dy = progress * (ghost.y - ghost.py);
+                    x += dx;
+                    y += dy;
+                }
+
                 ctx.beginPath();
-                ctx.arc(s*(pos.x+1/2), s*(pos.y+1/2), s/2, 0, 2*Math.PI, false);
+                ctx.arc(s*(x+1/2), s*(y+1/2), s/2.5, 0, 2*Math.PI, false);
                 ctx.fill();
             });
         }
