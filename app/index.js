@@ -3,8 +3,7 @@ let newMapFromImage = require("./map").newMapFromImage,
     createGui = require("./gui");
 
 let runGame = function(gameMap) {
-    let gameState = createGameState(gameMap),
-        prevState = null;
+    let gameState = createGameState(gameMap);
     let gui = createGui(document.querySelector("#game"));
 
     let tick = function() {
@@ -14,11 +13,19 @@ let runGame = function(gameMap) {
         gui.drawState(gameState);
 
         if (gameState.isGameOver()) {
+            gui.drawGameOver(gameState);
             console.log("Game Over!");
             return;
         }
 
         requestAnimationFrame(tick);
+    };
+
+    gui.onClick = function() {
+        if (gameState.isGameOver()) {
+            gameState = createGameState(gameMap);
+            tick();
+        }
     };
 
     tick();

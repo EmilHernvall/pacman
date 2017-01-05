@@ -1,4 +1,4 @@
-const SCALEFACTOR = 40;
+const SCALEFACTOR = 30;
 
 module.exports = function(container) {
 
@@ -60,8 +60,30 @@ module.exports = function(container) {
                 player = state.playerPosition;
 
             let ctx = this.canvas.getContext("2d");
-            ctx.fillStyle = "rgb(0,255,0)";
 
+            // Draw pellets
+            ctx.fillStyle = "rgb(255,255,0)";
+            state.pellets.forEach(pellet => {
+                let x = pellet.x,
+                    y = pellet.y;
+
+                ctx.beginPath();
+                ctx.arc(s*(x+1/2), s*(y+1/2), s/5, 0, 2*Math.PI, false);
+                ctx.fill();
+            });
+
+            // Draw super pills
+            ctx.fillStyle = "rgb(255,0,255)";
+            state.superPills.forEach(pill => {
+                let x = pill.x,
+                    y = pill.y;
+
+                ctx.beginPath();
+                ctx.arc(s*(x+1/2), s*(y+1/2), s/4, 0, 2*Math.PI, false);
+                ctx.fill();
+            });
+
+            // Draw player
             let playerX = player.px,
                 playerY = player.py;
             if (player.ticks + player.den < state.ticks) {
@@ -75,11 +97,16 @@ module.exports = function(container) {
                 playerY += dy;
             }
 
+            if (state.isSuperMode()) {
+                ctx.fillStyle = "rgb(0,0,0)";
+            } else {
+                ctx.fillStyle = "rgb(0,255,0)";
+            }
             ctx.beginPath();
             ctx.arc(s*(playerX+1/2), s*(playerY+1/2), s/2.5, 0, 2*Math.PI, false);
             ctx.fill();
 
-            ctx.fillStyle = "rgb(255,0,0)";
+            // Draw ghosts
             state.ghosts.forEach(ghost => {
                 let x = ghost.px,
                     y = ghost.py;
@@ -95,12 +122,46 @@ module.exports = function(container) {
                     y += dy;
                 }
 
+                if (ghost.returnToCage) {
+                    ctx.fillStyle = "rgb(255,200,200)";
+                } else {
+                    ctx.fillStyle = "rgb(255,0,0)";
+                }
+
                 ctx.beginPath();
                 ctx.arc(s*(x+1/2), s*(y+1/2), s/2.5, 0, 2*Math.PI, false);
                 ctx.fill();
             });
+        },
+        drawGameOver(state) {
+            let ctx = this.canvas.getContext("2d");
+            ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "rgba(255, 100, 100, 1)";
+            ctx.font = "48px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("GAME OVER", canvas.width/2, 1*canvas.height/3);
+
+            ctx.font = "20px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "rgba(255, 255, 255, 1)";
+            ctx.fillText("Your score was: " + state.score, canvas.width/2, canvas.height/2);
+
+            ctx.font = "24px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "rgba(100, 255, 100, 1)";
+            ctx.fillText("Click to Retry", canvas.width/2, 2*canvas.height/3);
         }
     };
+
+    canvas.addEventListener("click", function() {
+        if (result.onClick) {
+            result.onClick();
+        }
+    });
 
     window.addEventListener("keydown", function(e) {
         switch (e.keyCode) {

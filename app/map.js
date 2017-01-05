@@ -8,7 +8,9 @@ const SLOTTYPE_EMPTY = 0,
       SLOTTYPE_WALL = 1,
       SLOTTYPE_PLAYERSTART = 2,
       SLOTTYPE_GHOSTSTART = 3,
-      SLOTTYPE_GHOSTESCAPE = 4;
+      SLOTTYPE_GHOSTESCAPE = 4,
+      SLOTTYPE_PELLET = 5,
+      SLOTTYPE_SUPERPILL = 6;
 
 let packCoords = function(x,y) {
     return ((x & COORDINATE_BIT_MASK) << BITS_PER_COORDINATE) |
@@ -45,15 +47,19 @@ let newMapFromImage = function(imageOfMap) {
             b = data[idx + 2],
             c = ((r << 16) | (g << 8) | b);
 
-        if (c === 0xFFFFFF) { // empty
+        if (c === 0xFFFFFF) {
             mapData[newIdx] = SLOTTYPE_EMPTY;
-        } else if (c === 0xFF0000) { // ghost start
+        } else if (c === 0xFF0000) {
             mapData[newIdx] = SLOTTYPE_GHOSTSTART;
-        } else if (c === 0x00FF00) { // player start
+        } else if (c === 0x00FF00) {
             mapData[newIdx] = SLOTTYPE_PLAYERSTART;
-        } else if (c === 0x0000FF) { // ghost escape
+        } else if (c === 0x0000FF) {
             mapData[newIdx] = SLOTTYPE_GHOSTESCAPE;
-        } else { // wall
+        } else if (c === 0xFFFF00) {
+            mapData[newIdx] = SLOTTYPE_PELLET;
+        } else if (c === 0xFF00FF) {
+            mapData[newIdx] = SLOTTYPE_SUPERPILL;
+        } else {
             mapData[newIdx] = SLOTTYPE_WALL;
         }
     }
@@ -95,26 +101,28 @@ let createMap = function(width, height, buffer) {
             let c = this.buffer[packCoords(x,y)];
             return c == SLOTTYPE_GHOSTESCAPE;
         },
-        getPlayerStart() {
+        getBlocksBySlotType(type) {
+            let result  = [];
             for (let i = 0; i < buffer.length; i++) {
                 let c = buffer[i];
-                if (c == SLOTTYPE_PLAYERSTART) {
-                    return unpackCoords(i);
+                if (c == type) {
+                    result.push(unpackCoords(i));
                 }
             }
 
-            return;
+            return result;
+        },
+        getPlayerStart() {
+            return this.getBlocksBySlotType(SLOTTYPE_PLAYERSTART)[0];
         },
         getGhostStarts() {
-            let ghostStarts = [];
-            for (let i = 0; i < buffer.length; i++) {
-                let c = buffer[i];
-                if (c == SLOTTYPE_GHOSTSTART) {
-                    ghostStarts.push(unpackCoords(i));
-                }
-            }
-
-            return ghostStarts;
+            return this.getBlocksBySlotType(SLOTTYPE_GHOSTSTART);
+        },
+        getPellets() {
+            return this.getBlocksBySlotType(SLOTTYPE_PELLET);
+        },
+        getSuperPills() {
+            return this.getBlocksBySlotType(SLOTTYPE_SUPERPILL);
         }
     };
 };
